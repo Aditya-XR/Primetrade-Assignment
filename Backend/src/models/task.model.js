@@ -1,25 +1,42 @@
-import mongoose from 'mongoose';
+import mongoose, { Schema } from "mongoose";
 
-const taskSchema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: true,
-    trim: true,
-  },
-  description: {
-    type: String,
-  },
-  status: {
-    type: String,
-    enum: ['pending', 'in-progress', 'completed'],
-    default: 'pending',
-  },
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', // Reference to the User model
-    required: true,
-  },
-}, { timestamps: true });
+const removeInternalFields = (_, returnedObject) => {
+    delete returnedObject.__v;
+    return returnedObject;
+};
 
-const Task = mongoose.model('Task', taskSchema);
+const taskSchema = new Schema(
+    {
+        title: {
+            type: String,
+            required: [true, "Title is required"],
+            trim: true,
+            maxlength: [150, "Title cannot exceed 150 characters"],
+        },
+        description: {
+            type: String,
+            trim: true,
+            default: "",
+            maxlength: [1000, "Description cannot exceed 1000 characters"],
+        },
+        status: {
+            type: String,
+            enum: ["pending", "completed"],
+            default: "pending",
+        },
+        user: {
+            type: Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
+        },
+    },
+    {
+        timestamps: true,
+        toJSON: { transform: removeInternalFields },
+        toObject: { transform: removeInternalFields },
+    },
+);
+
+const Task = mongoose.model("Task", taskSchema);
+
 export default Task;
